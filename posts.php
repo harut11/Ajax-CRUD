@@ -9,7 +9,6 @@ function index() {
 
     if($result) {
         $rows = $result->fetchAll();
-//
         echo json_encode($rows);
     }
 }
