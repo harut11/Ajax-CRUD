@@ -93,10 +93,27 @@ let ajaxCRUD = {
                 $.ajax({
                     url: "create.php",
                     method: "post",
-                    async: false,
                     data: ({title: titleVal, description: descriptionVal, attr: attr}),
                     success: (data) => {
+                        let post = JSON.parse(data),
+                            html = '<div class="card p-0 mb-3 post" data-id="'+ post.id +'">'
+                                + '<div class="card-body">'
+                                + '<h5 class="card-title">'+ post.title +'</h5>'
+                                + '<p class="card-text">'+ post.description.substr(0, 120) + ' ...' + '</p>'
+                                + '</div>'
+                                + '<div class="card-footer">'
+                                + '<small class="text-muted clearfix">Created At: ' + post.created_at + ''
+                                    + '<button class="btn btn-danger float-right" onclick="ajaxCRUD.deletePost('+ post.id +')">'
+                                    + '<i class="fas fa-minus-circle"></i>' + '</button>'
+                                    + '<button class="btn btn-info float-right mr-2 edit">' + '<i class="fas fa-edit"></i>' + '</button>'
+                                + '</small>'
+                                + '</div>'
+                                + '</div>';
 
+                        if(post) {
+                            ajaxCRUD.table.addClass('card-columns');
+                            ajaxCRUD.table.append(html);
+                        }
                     },
                     error : (err) => {
                         console.log(err);
@@ -122,13 +139,13 @@ let ajaxCRUD = {
 
     updatePost: () => {
         $('.edit').click((event) => {
-            $('#create').toggleClass('show');
+            $('#collapseExample').toggleClass('show');
             ajaxCRUD.postId = $(event.target).closest('.card').attr('data-id');
             let submit = $('#submit');
 
             $.ajax({
                 url: "show.php",
-                method: "GET",
+                method: "post",
                 data: {id: ajaxCRUD.postId},
                 success: (result) => {
                     let post = JSON.parse(result);

@@ -3,9 +3,9 @@
 require_once ('connection.php');
 
 function show() {
-    var_dump($_GET['id']);
-    if(isset($_GET['id'])) {
-        $id = $_GET['id'];
+    var_dump($_POST['id']);
+    if(isset($_POST['id'])) {
+        $id = $_POST['id'];
         $sql = "SELECT * FROM posts WHERE id = '". $id ."'";
         $result = $GLOBALS['connection']->prepare($sql);
         $result->execute();
