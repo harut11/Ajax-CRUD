@@ -3,6 +3,7 @@ let ajaxCRUD = {
     postId: null,
     title: $('#title'),
     description: $('#description'),
+    image: $('#image'),
 
     showPosts: () => {
         $.ajax({
@@ -159,6 +160,7 @@ let ajaxCRUD = {
                     let post = JSON.parse(data);
                     ajaxCRUD.title.val(post.title);
                     ajaxCRUD.description.val(post.description);
+                    ajaxCRUD.image.val(post.image);
                 }
             });
 
