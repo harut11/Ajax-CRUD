@@ -3,7 +3,7 @@
 require_once ('connection.php');
 
 function show() {
-    var_dump($_POST['id']);
+
     if(isset($_POST['id'])) {
         $id = $_POST['id'];
         $sql = "SELECT * FROM posts WHERE id = '". $id ."'";

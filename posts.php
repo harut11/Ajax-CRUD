@@ -6,10 +6,15 @@ function index() {
     $result = $GLOBALS['connection']->prepare($sql);
     $result->execute();
 
+    $sql2 = "SELECT * FROM images";
+    $result2 = $GLOBALS['connection']->prepare($sql2);
+    $result2->execute();
 
-    if($result) {
+
+    if($result && $result2) {
         $rows = $result->fetchAll();
-        echo json_encode($rows);
+        $images = $result2->fetchAll();
+        echo json_encode(['posts' => $rows, 'images' => $images]);
     }
 }
 

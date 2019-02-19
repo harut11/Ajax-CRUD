@@ -10,25 +10,34 @@ let ajaxCRUD = {
             method: "get",
             async: false,
             success: (result) => {
-                let post = JSON.parse(result);
-
+                let post = JSON.parse(result)['posts'],
+                    image = JSON.parse(result)['images'];
+                console.log(image);
                 if(post.length > 0) {
                     ajaxCRUD.table.addClass('card-columns');
-                    let html = '';
+                    let html = '',
+                        imgName = '';
+
                     $.each(post, (key, value) => {
-                            html = html + '<div class="card p-0 mb-3 post" data-id="'+ value.id +'">';
-                            html = html + '<div class="card-body">';
-                            html = html + '<h5 class="card-title">'+ value.title +'</h5>';
-                            html = html + '<p class="card-text">'+ value.description.substr(0, 120) + ' ...' + '</p>';
-                            html = html + '</div>';
-                            html = html + '<div class="card-footer">';
-                            html = html + '<small class="text-muted clearfix">Created At: ' + value.created_at + '' +
-                                '<button class="btn btn-danger float-right" onclick="ajaxCRUD.deletePost('+ value.id +')">' +
-                                '<i class="fas fa-minus-circle"></i>' + '</button>';
-                            html = html + '<button class="btn btn-info float-right mr-2 edit">' + '<i class="fas fa-edit"></i>' + '</button>';
-                            html = html + '</small>';
-                            html = html + '</div>';
-                            html = html + '</div>';
+                        for(let i = 0; i < image.length; i++) {
+                            if(value.id === image[i].post_id) {
+                                imgName = image[i].name;
+                            }
+                        }
+                        html = html + '<div class="card p-0 mb-3 post" data-id="'+ value.id +'">';
+                        html = html + '<img src="uploads/' + imgName +'" class="card-img-top" alt="">';
+                        html = html + '<div class="card-body">';
+                        html = html + '<h5 class="card-title">'+ value.title +'</h5>';
+                        html = html + '<p class="card-text">'+ value.description.substr(0, 120) + ' ...' + '</p>';
+                        html = html + '</div>';
+                        html = html + '<div class="card-footer">';
+                        html = html + '<small class="text-muted clearfix">Created At: ' + moment(value.created_at).startOf().fromNow() + '' +
+                            '<button class="btn btn-danger float-right" onclick="ajaxCRUD.deletePost('+ value.id +')">' +
+                            '<i class="fas fa-minus-circle"></i>' + '</button>';
+                        html = html + '<button class="btn btn-info float-right mr-2 edit">' + '<i class="fas fa-edit"></i>' + '</button>';
+                        html = html + '</small>';
+                        html = html + '</div>';
+                        html = html + '</div>';
 
                         ajaxCRUD.table.html(html);
                     });
@@ -45,11 +54,7 @@ let ajaxCRUD = {
 
                     ajaxCRUD.table.html(html);
                 }
-            },
-            error : (err) => {
-                console.log(err);
-            },
-
+            }
         })
     },
 
@@ -60,15 +65,12 @@ let ajaxCRUD = {
                 method: "post",
                 async: false,
                 data: ({id: id}),
-                success: (data) => {
-
-                },
-                error : (err) => {
-                    console.log(err);
-                },
             });
 
             $('.post[data-id="'+ id +'"]').remove();
+            ajaxCRUD.title.val('');
+            ajaxCRUD.description.val('');
+            $('#collapseExample').removeClass('show');
         }  else {
             return false;
         }
@@ -87,22 +89,30 @@ let ajaxCRUD = {
                 description = ajaxCRUD.description,
                 titleVal = title.val().trim(),
                 descriptionVal = description.val().trim(),
-                attr = $('#submit').attr('data-action');
+                attr = $('#submit').attr('data-action'),
+                form = $('.form')[0];
 
             if(attr === 'create') {
+                let formData = new FormData(form);
+                formData.append('attr', attr);
                 $.ajax({
                     url: "create.php",
-                    method: "post",
-                    data: ({title: titleVal, description: descriptionVal, attr: attr}),
+                    type: "post",
+                    data: formData,
+                    contentType: false,
+                    cache: false,
+                    processData:false,
                     success: (data) => {
-                        let post = JSON.parse(data),
+                        let post = JSON.parse(data)['post'],
+                            image = JSON.parse(data)['image'],
                             html = '<div class="card p-0 mb-3 post" data-id="'+ post.id +'">'
+                                + '<img src="uploads/' + image.name +'" class="card-img-top" alt="">'
                                 + '<div class="card-body">'
                                 + '<h5 class="card-title">'+ post.title +'</h5>'
                                 + '<p class="card-text">'+ post.description.substr(0, 120) + ' ...' + '</p>'
                                 + '</div>'
                                 + '<div class="card-footer">'
-                                + '<small class="text-muted clearfix">Created At: ' + post.created_at + ''
+                                + '<small class="text-muted clearfix">Created At: ' + moment(post.created_at).startOf().fromNow() + ''
                                     + '<button class="btn btn-danger float-right" onclick="ajaxCRUD.deletePost('+ post.id +')">'
                                     + '<i class="fas fa-minus-circle"></i>' + '</button>'
                                     + '<button class="btn btn-info float-right mr-2 edit">' + '<i class="fas fa-edit"></i>' + '</button>'
@@ -114,23 +124,21 @@ let ajaxCRUD = {
                             ajaxCRUD.table.addClass('card-columns');
                             ajaxCRUD.table.append(html);
                         }
-                    },
-                    error : (err) => {
-                        console.log(err);
-                    },
+                    }
                 });
+                submit.removeAttr('data-action');
             } else if(attr === 'edit') {
                 $.ajax({
                     url: "create.php",
                     method: "POST",
                     data: ({id: ajaxCRUD.postId, title: titleVal, description: descriptionVal, attr: attr}),
-                    success: (data) => {
-
+                    success: () => {
+                        let post = $('.post[data-id="'+ ajaxCRUD.postId +'"]');
+                        post.find('.card-title').text(titleVal);
+                        post.find('.card-text').text(descriptionVal);
                     }
                 })
             }
-
-            $('#collapseExample').removeClass('show');
             title.val('');
             description.val('');
             submit.removeAttr('data-action');
@@ -138,8 +146,8 @@ let ajaxCRUD = {
     },
 
     updatePost: () => {
-        $('.edit').click((event) => {
-            $('#collapseExample').toggleClass('show');
+        $(document).on('click', '.edit', () => {
+            $('#collapseExample').addClass('show');
             ajaxCRUD.postId = $(event.target).closest('.card').attr('data-id');
             let submit = $('#submit');
 
@@ -147,16 +155,15 @@ let ajaxCRUD = {
                 url: "show.php",
                 method: "post",
                 data: {id: ajaxCRUD.postId},
-                success: (result) => {
-                    let post = JSON.parse(result);
-                    console.log(post);
+                success: (data) => {
+                    let post = JSON.parse(data);
                     ajaxCRUD.title.val(post.title);
                     ajaxCRUD.description.val(post.description);
                 }
             });
 
             submit.attr('data-action', 'edit');
-        })
+        });
     },
 };
 
