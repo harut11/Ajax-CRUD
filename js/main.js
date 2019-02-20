@@ -123,6 +123,7 @@ let ajaxCRUD = {
             ajaxCRUD.title.val('');
             ajaxCRUD.description.val('');
             $('#forShow').attr('src', 'uploads/noimage.jpg');
+            $('#image').val('');
         });
 
         $(document).on('click', '#submit', () => {
@@ -174,7 +175,7 @@ let ajaxCRUD = {
             } else if(attr === 'edit') {
                 let formData = new FormData(ajaxCRUD.form),
                     id = ajaxCRUD.postId;
-                console.log(id);
+
                 formData.append('attr', attr);
                 formData.append('id', id);
                 $.ajax({
@@ -187,6 +188,8 @@ let ajaxCRUD = {
                     success: (data) => {
                         let post = $('.post[data-id="'+ ajaxCRUD.postId +'"]'),
                             img = JSON.parse(data);
+
+                        console.log(img);
 
                         post.find('.card-title').text(titleVal);
                         post.find('.card-text').text(descriptionVal);
@@ -203,6 +206,7 @@ let ajaxCRUD = {
 
     updatePost: (id) => {
         $('#collapseExample').addClass('show');
+        $('#image').val('');
 
         let submit = $('#submit');
 

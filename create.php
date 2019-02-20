@@ -40,26 +40,27 @@ function create() {
         $img = get_image_name($id);
 
 
-        $sql = "UPDATE posts SET title = '". $title ."', description = '". $description ."' WHERE  id = '". $id ."'";
+        $sql = "UPDATE posts SET title = '". $title ."', description = '". $description ."' WHERE  id = $id";
         $result = $GLOBALS['connection']->prepare($sql);
         $result->execute();
 
-        if(empty($_FILES['image'])) {
-
-        } else {
+        if($_FILES['image']['size'] !== 0) {
             $imgName = upload_image();
+
 
             if($imgName !== '') {
                 unlink("uploads/" . $img);
             }
 
-            $sql2 = "UPDATE images SET name = '". $imgName ."' WHERE post_id = '". $id ."'";
+            $sql2 = "UPDATE images SET name = '". $imgName ."' WHERE post_id = $id";
             $result2 = $GLOBALS['connection']->prepare($sql2);
             $result2->execute();
 
             if($result2) {
                 echo json_encode($imgName);
             }
+        } else {
+            echo json_encode($img);
         }
     }
 }
