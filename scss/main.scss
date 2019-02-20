@@ -7,8 +7,25 @@
 /* Posts Section Start */
 #table {
   .post {
-    .card-footer {
+    background-size: contain;
+    .card-img-top {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    .card-body {
+      .card-title {
+        cursor: pointer;
+      }
+    }
+  }
+}
 
+.modal {
+  .modal-content {
+    .modalImg {
+      object-fit: cover;
     }
   }
 }

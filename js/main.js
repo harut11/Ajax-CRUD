@@ -4,16 +4,16 @@ let ajaxCRUD = {
     title: $('#title'),
     description: $('#description'),
     image: $('#image'),
+    form: $('.form')[0],
 
     showPosts: () => {
         $.ajax({
             url: "posts.php",
             method: "get",
-            async: false,
             success: (result) => {
                 let post = JSON.parse(result)['posts'],
                     image = JSON.parse(result)['images'];
-                console.log(image);
+
                 if(post.length > 0) {
                     ajaxCRUD.table.addClass('card-columns');
                     let html = '',
@@ -26,16 +26,22 @@ let ajaxCRUD = {
                             }
                         }
                         html = html + '<div class="card p-0 mb-3 post" data-id="'+ value.id +'">';
-                        html = html + '<img src="uploads/' + imgName +'" class="card-img-top" alt="">';
+                        html = html + '<img src="uploads/' + imgName +'" class="card-img-top" alt="" data-toggle="modal"' +
+                            ' data-target="#exampleModalCenter">';
                         html = html + '<div class="card-body">';
-                        html = html + '<h5 class="card-title">'+ value.title +'</h5>';
+                        html = html + '<h5 class="card-title" data-toggle="modal" data-target="#exampleModalCenter">'+
+                            value.title +'</h5>';
                         html = html + '<p class="card-text">'+ value.description.substr(0, 120) + ' ...' + '</p>';
                         html = html + '</div>';
                         html = html + '<div class="card-footer">';
-                        html = html + '<small class="text-muted clearfix">Created At: ' + moment(value.created_at).startOf().fromNow() + '' +
-                            '<button class="btn btn-danger float-right" onclick="ajaxCRUD.deletePost('+ value.id +')">' +
-                            '<i class="fas fa-minus-circle"></i>' + '</button>';
-                        html = html + '<button class="btn btn-info float-right mr-2 edit">' + '<i class="fas fa-edit"></i>' + '</button>';
+                        html = html + '<small class="text-muted clearfix">Created At: ' +
+                            moment(value.created_at).startOf().fromNow() + '' +
+                            '<button class="btn btn-danger float-right delete" ' +
+                                'onclick="ajaxCRUD.deletePost('+ value.id +')">' + '<i class="fas fa-minus-circle"></i>'
+                            + '</button>';
+                        html = html + '<button class="btn btn-info float-right mr-2 edit" ' +
+                                        'onclick="ajaxCRUD.updatePost('+ value.id +')">' +
+                                        '<i class="fas fa-edit"></i>' + '</button>';
                         html = html + '</small>';
                         html = html + '</div>';
                         html = html + '</div>';
@@ -56,7 +62,41 @@ let ajaxCRUD = {
                     ajaxCRUD.table.html(html);
                 }
             }
-        })
+        });
+
+        document.getElementById('image').addEventListener('change', function (e) {
+            let preview = $('#forShow'),
+                file = e.target.files[0],
+                reader = new FileReader();
+
+                reader.addEventListener('load', () => {
+                    preview.attr('src', reader.result);
+                }, false);
+
+            if(file) {
+                    reader.readAsDataURL(file);
+            }
+        });
+
+        $(document).on('click', '.card-img-top', (event) => {
+            ajaxCRUD.postId = $(event.target).closest('.card').attr('data-id');
+
+            $.ajax({
+                url: "show.php",
+                method: "post",
+                data: {id: ajaxCRUD.postId},
+                success: (data) => {
+                    let post = JSON.parse(data)['post'],
+                        img = JSON.parse(data)['image'];
+
+                    $('#exampleModalCenterTitle').text(post.title);
+                    $('.modal-body').text(post.description);
+                    $('.modalImg').attr('src', "uploads/"+ img.name +"");
+                }
+            });
+
+            $('.card-title').trigger('click');
+        });
     },
 
     deletePost: (id) => {
@@ -64,7 +104,6 @@ let ajaxCRUD = {
             $.ajax({
                 url: "delete.php",
                 method: "post",
-                async: false,
                 data: ({id: id}),
             });
 
@@ -83,6 +122,7 @@ let ajaxCRUD = {
             submit.attr('data-action', 'create');
             ajaxCRUD.title.val('');
             ajaxCRUD.description.val('');
+            $('#forShow').attr('src', 'uploads/noimage.jpg');
         });
 
         $(document).on('click', '#submit', () => {
@@ -90,11 +130,10 @@ let ajaxCRUD = {
                 description = ajaxCRUD.description,
                 titleVal = title.val().trim(),
                 descriptionVal = description.val().trim(),
-                attr = $('#submit').attr('data-action'),
-                form = $('.form')[0];
+                attr = $('#submit').attr('data-action');
 
             if(attr === 'create') {
-                let formData = new FormData(form);
+                let formData = new FormData(ajaxCRUD.form);
                 formData.append('attr', attr);
                 $.ajax({
                     url: "create.php",
@@ -113,10 +152,14 @@ let ajaxCRUD = {
                                 + '<p class="card-text">'+ post.description.substr(0, 120) + ' ...' + '</p>'
                                 + '</div>'
                                 + '<div class="card-footer">'
-                                + '<small class="text-muted clearfix">Created At: ' + moment(post.created_at).startOf().fromNow() + ''
-                                    + '<button class="btn btn-danger float-right" onclick="ajaxCRUD.deletePost('+ post.id +')">'
+                                + '<small class="text-muted clearfix">Created At: ' +
+                                    moment(post.created_at).startOf().fromNow() + ''
+                                    + '<button class="btn btn-danger float-right" ' +
+                                        'onclick="ajaxCRUD.deletePost('+ post.id +')">'
                                     + '<i class="fas fa-minus-circle"></i>' + '</button>'
-                                    + '<button class="btn btn-info float-right mr-2 edit">' + '<i class="fas fa-edit"></i>' + '</button>'
+                                    + '<button class="btn btn-info float-right mr-2 edit"' +
+                                '       onclick="ajaxCRUD.updatePost('+ post.id +')">' +
+                                        '<i class="fas fa-edit"></i>' + '</button>'
                                 + '</small>'
                                 + '</div>'
                                 + '</div>';
@@ -129,46 +172,59 @@ let ajaxCRUD = {
                 });
                 submit.removeAttr('data-action');
             } else if(attr === 'edit') {
+                let formData = new FormData(ajaxCRUD.form),
+                    id = ajaxCRUD.postId;
+                console.log(id);
+                formData.append('attr', attr);
+                formData.append('id', id);
                 $.ajax({
                     url: "create.php",
-                    method: "POST",
-                    data: ({id: ajaxCRUD.postId, title: titleVal, description: descriptionVal, attr: attr}),
-                    success: () => {
-                        let post = $('.post[data-id="'+ ajaxCRUD.postId +'"]');
+                    type: "POST",
+                    data: formData,
+                    contentType: false,
+                    cache: false,
+                    processData:false,
+                    success: (data) => {
+                        let post = $('.post[data-id="'+ ajaxCRUD.postId +'"]'),
+                            img = JSON.parse(data);
+
                         post.find('.card-title').text(titleVal);
                         post.find('.card-text').text(descriptionVal);
+                        post.find('.card-img-top').attr('src', "uploads/"+ img +"");
                     }
                 })
             }
             title.val('');
             description.val('');
             submit.removeAttr('data-action');
+            ajaxCRUD.image.val('');
         })
     },
 
-    updatePost: () => {
-        $(document).on('click', '.edit', () => {
-            $('#collapseExample').addClass('show');
-            ajaxCRUD.postId = $(event.target).closest('.card').attr('data-id');
-            let submit = $('#submit');
+    updatePost: (id) => {
+        $('#collapseExample').addClass('show');
 
-            $.ajax({
-                url: "show.php",
-                method: "post",
-                data: {id: ajaxCRUD.postId},
-                success: (data) => {
-                    let post = JSON.parse(data);
-                    ajaxCRUD.title.val(post.title);
-                    ajaxCRUD.description.val(post.description);
-                    ajaxCRUD.image.val(post.image);
-                }
-            });
+        let submit = $('#submit');
 
-            submit.attr('data-action', 'edit');
+        ajaxCRUD.postId = id;
+
+        $.ajax({
+            url: "show.php",
+            method: "post",
+            data: {id: id},
+            success: (data) => {
+                let post = JSON.parse(data)['post'],
+                    img = JSON.parse(data)['image'];
+
+                ajaxCRUD.title.val(post.title);
+                ajaxCRUD.description.val(post.description);
+                $('#forShow').attr('src', "uploads/"+ img.name +"");
+            }
         });
+
+        submit.attr('data-action', 'edit');
     },
 };
 
 ajaxCRUD.showPosts();
 ajaxCRUD.createPost();
-ajaxCRUD.updatePost();

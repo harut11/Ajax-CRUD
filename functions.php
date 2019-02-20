@@ -15,13 +15,11 @@ function get_image_name($post_id) {
 }
 
 function upload_image() {
-    if(isset($_FILES['image'])) {
-        $name = $_FILES['image']['name'];
-        $extention = explode('.', $name);
-        $imgName = rand() . '.' . $extention[1];
-        $tmp = $_FILES['image']['tmp_name'];
-        $path = "./uploads/" . $imgName;
-        move_uploaded_file($tmp, $path);
-        return $imgName;
-    }
+    $name = $_FILES['image']['name'];
+    $extention = explode('.', $name);
+    $imgName = rand() . '.' . $extention[1];
+    $tmp = $_FILES['image']['tmp_name'];
+    $path = "./uploads/" . $imgName;
+    move_uploaded_file($tmp, $path);
+    return $imgName;
 }
