@@ -8,7 +8,7 @@ function delete() {
         $sql = "DELETE FROM posts WHERE id = $id";
         $imgName = get_image_name($id);
 
-        if($imgName !== '') {
+        if($imgName !== '' && $imgName !== 'noimage.jpg') {
             unlink("uploads/" . $imgName);
         }
 

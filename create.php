@@ -7,7 +7,6 @@ function create() {
     if(isset($_POST) && $_POST['attr'] === 'create') {
         $title = $_POST['title'];
         $description = $_POST['description'];
-        $imgName = upload_image();
 
         $sql = "INSERT INTO posts (title, description) VALUES ('" .$title."', '" .$description."')";
         $result = $GLOBALS['connection']->prepare($sql);
@@ -17,9 +16,17 @@ function create() {
         $result2 = $GLOBALS['connection']->prepare($sql2);
         $result2->execute();
 
-        $sql3 = "INSERT INTO images (name, post_id) VALUES ('" .$imgName."', (SELECT MAX(id) FROM posts))";
-        $result3 = $GLOBALS['connection']->prepare($sql3);
-        $result3->execute();
+        if($_FILES['image']['size'] !== 0) {
+            $imgName = upload_image();
+
+            $sql3 = "INSERT INTO images (name, post_id) VALUES ('" .$imgName."', (SELECT MAX(id) FROM posts))";
+            $result3 = $GLOBALS['connection']->prepare($sql3);
+            $result3->execute();
+        } else {
+            $sql5 = "INSERT INTO images (name, post_id) VALUES ('noimage.jpg', (SELECT MAX(id) FROM posts))";
+            $result5 = $GLOBALS['connection']->prepare($sql5);
+            $result5->execute();
+        }
 
         $sql4 = "SELECT * FROM images WHERE post_id = (SELECT MAX(id) FROM posts)";
         $result4 = $GLOBALS['connection']->prepare($sql4);
@@ -48,7 +55,7 @@ function create() {
             $imgName = upload_image();
 
 
-            if($imgName !== '') {
+            if($imgName !== '' && $img !== 'noimage.jpg') {
                 unlink("uploads/" . $img);
             }
 

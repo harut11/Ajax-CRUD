@@ -29,7 +29,7 @@ let ajaxCRUD = {
                         html = html + '<img src="uploads/' + imgName +'" class="card-img-top" alt="" data-toggle="modal"' +
                             ' data-target="#exampleModalCenter">';
                         html = html + '<div class="card-body">';
-                        html = html + '<h5 class="card-title" data-toggle="modal" data-target="#exampleModalCenter">'+
+                        html = html + '<h5 class="card-title">'+
                             value.title +'</h5>';
                         html = html + '<p class="card-text">'+ value.description.substr(0, 120) + ' ...' + '</p>';
                         html = html + '</div>';
@@ -94,9 +94,12 @@ let ajaxCRUD = {
                     $('.modalImg').attr('src', "uploads/"+ img.name +"");
                 }
             });
-
-            $('.card-title').trigger('click');
         });
+
+        $(document).on('click', '.edit', () => {
+            $("html, body").animate({ scrollTop: 0 }, "slow");
+            return false;
+        })
     },
 
     deletePost: (id) => {
